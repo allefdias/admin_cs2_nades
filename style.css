@@ -1,0 +1,154 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #121214;
+    color: #e1e1e6;
+    min-height: 100vh;
+}
+
+.admin-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+.admin-header {
+    margin-bottom: 30px;
+    border-bottom: 1px solid #29292e;
+    padding-bottom: 15px;
+}
+
+.admin-header h1 {
+    color: #fff;
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.admin-header p {
+    color: #a8a8b3;
+    font-size: 14px;
+}
+
+.pending-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.pending-card {
+    background-color: #1a1a1e;
+    border: 1px solid #29292e;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.pending-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.pending-card-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* Badges e tags */
+.card-tags {
+    display: flex;
+    gap: 8px;
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.badge-tr {
+    background-color: #f75a68;
+    color: #fff;
+}
+
+.badge-ct {
+    background-color: #00875f;
+    color: #fff;
+}
+
+.badge-map {
+    background-color: #29292e;
+    color: #a8a8b3;
+}
+
+.badge-type {
+    background-color: #323238;
+    color: #e1e1e6;
+}
+
+/* Container do Vídeo no Admin */
+.video-container {
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 6px;
+    overflow: hidden;
+    background-color: #000;
+}
+
+.video-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.approve-btn {
+    background-color: #00b37e;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.approve-btn:hover {
+    background-color: #00875f;
+}
+
+.approve-btn:disabled {
+    background-color: #29292e;
+    color: #a8a8b3;
+    cursor: not-allowed;
+}
+
+.status-msg {
+    text-align: center;
+    color: #a8a8b3;
+    font-size: 16px;
+    padding: 40px 0;
+}
+
+.status-msg.success {
+    color: #00b37e;
+    font-weight: bold;
+}
+
+.status-msg.error {
+    color: #f75a68;
+}
