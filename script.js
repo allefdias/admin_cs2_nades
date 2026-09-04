@@ -35,13 +35,24 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     <div class="video-container">
-                        <iframe src="${nade.embedUrl}" allowfullscreen></iframe>
+                        <iframe 
+                            src="${nade.embedUrl}" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            referrerpolicy="strict-origin-when-cross-origin" 
+                            allowfullscreen>
+                        </iframe>
                     </div>
-                    <button class="approve-btn">Aprovar e Publicar</button>
+                    <div class="card-actions">
+                        <button class="approve-btn">Aprovar e Publicar</button>
+                        <button class="reject-btn">Recusar e Excluir</button>
+                    </div>
                 `;
 
                 const approveBtn = card.querySelector('.approve-btn');
-                approveBtn.addEventListener('click', () => approveNade(nade, approveBtn));
+                const rejectBtn = card.querySelector('.reject-btn');
+
+                approveBtn.addEventListener('click', () => approveNade(nade, approveBtn, rejectBtn));
+                rejectBtn.addEventListener('click', () => rejectNade(nade, approveBtn, rejectBtn));
 
                 pendingList.appendChild(card);
             });
@@ -52,9 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function approveNade(nade, btnElement) {
-        btnElement.disabled = true;
-        btnElement.textContent = 'Aprovando...';
+    async function approveNade(nade, approveBtn, rejectBtn) {
+        approveBtn.disabled = true;
+        rejectBtn.disabled = true;
+        approveBtn.textContent = 'Aprovando...';
 
         const payload = {
             action: 'approve',
@@ -71,13 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetch(API_URL, {
                 method: 'POST',
                 mode: 'no-cors',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
-            // Aguarda a atualização na planilha e recarrega a lista
             setTimeout(() => {
                 loadPendingNades();
             }, 1500);
@@ -85,11 +94,44 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Erro ao aprovar utilitário:', error);
             alert('Falha ao aprovar o vídeo.');
-            btnElement.disabled = false;
-            btnElement.textContent = 'Aprovar e Publicar';
+            approveBtn.disabled = false;
+            rejectBtn.disabled = false;
+            approveBtn.textContent = 'Aprovar e Publicar';
         }
     }
 
-    // Inicializa a busca de pendentes
+    async function rejectNade(nade, approveBtn, rejectBtn) {
+        if (!confirm(`Deseja realmente recusar e excluir "${nade.title}"?`)) return;
+
+        approveBtn.disabled = true;
+        rejectBtn.disabled = true;
+        rejectBtn.textContent = 'Excluindo...';
+
+        const payload = {
+            action: 'reject',
+            rowIndex: nade.rowIndex
+        };
+
+        try {
+            await fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            setTimeout(() => {
+                loadPendingNades();
+            }, 1500);
+
+        } catch (error) {
+            console.error('Erro ao recusar utilitário:', error);
+            alert('Falha ao excluir o vídeo.');
+            approveBtn.disabled = false;
+            rejectBtn.disabled = false;
+            rejectBtn.textContent = 'Recusar e Excluir';
+        }
+    }
+
     loadPendingNades();
 });
