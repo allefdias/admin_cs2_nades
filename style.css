@@ -152,3 +152,30 @@ body {
 .status-msg.error {
     color: #f75a68;
 }
+.card-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.reject-btn {
+    background-color: #f75a68;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.reject-btn:hover {
+    background-color: #d64352;
+}
+
+.reject-btn:disabled {
+    background-color: #29292e;
+    color: #a8a8b3;
+    cursor: not-allowed;
+}
