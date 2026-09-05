@@ -2,15 +2,21 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxuwa0ufXZzvq1X2_79Mn3W
 
 document.addEventListener('DOMContentLoaded', () => {
     const pendingList = document.getElementById('pendingList');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const approveSelectedBtn = document.getElementById('approveSelectedBtn');
+    const rejectSelectedBtn = document.getElementById('rejectSelectedBtn');
+
+    let pendingNades = [];
 
     async function loadPendingNades() {
         if (!pendingList) return;
         
         pendingList.innerHTML = '<p class="status-msg">Carregando vídeos pendentes...</p>';
-        
+        resetSelectionState();
+
         try {
             const response = await fetch(`${API_URL}?action=pendentes`);
-            const pendingNades = await response.json();
+            pendingNades = await response.json();
 
             if (!Array.isArray(pendingNades) || pendingNades.length === 0) {
                 pendingList.innerHTML = '<p class="status-msg success">Nenhum vídeo pendente para aprovação!</p>';
@@ -19,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             pendingList.innerHTML = '';
 
-            pendingNades.forEach((nade) => {
+            pendingNades.forEach((nade, index) => {
                 const card = document.createElement('div');
                 card.className = 'pending-card';
 
@@ -27,7 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 card.innerHTML = `
                     <div class="pending-card-header">
-                        <span class="pending-card-title">${nade.title}</span>
+                        <div class="card-header-left">
+                            <input type="checkbox" class="card-select-checkbox" data-index="${index}">
+                            <span class="pending-card-title">${nade.title}</span>
+                        </div>
                         <div class="card-tags">
                             <span class="badge badge-map">${nade.map}</span>
                             <span class="badge ${sideClass}">${nade.side}</span>
@@ -43,16 +52,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         </iframe>
                     </div>
                     <div class="card-actions">
-                        <button class="approve-btn">Aprovar e Publicar</button>
-                        <button class="reject-btn">Recusar e Excluir</button>
+                        <button class="approve-btn single-approve">Aprovar</button>
+                        <button class="reject-btn single-reject">Recusar</button>
                     </div>
                 `;
 
-                const approveBtn = card.querySelector('.approve-btn');
-                const rejectBtn = card.querySelector('.reject-btn');
+                const checkbox = card.querySelector('.card-select-checkbox');
+                const singleApprove = card.querySelector('.single-approve');
+                const singleReject = card.querySelector('.single-reject');
 
-                approveBtn.addEventListener('click', () => approveNade(nade, approveBtn, rejectBtn));
-                rejectBtn.addEventListener('click', () => rejectNade(nade, approveBtn, rejectBtn));
+                checkbox.addEventListener('change', updateSelectionUI);
+                singleApprove.addEventListener('click', () => processBatch([nade], 'approveBatch'));
+                singleReject.addEventListener('click', () => {
+                    if (confirm(`Deseja recusar "${nade.title}"?`)) {
+                        processBatch([nade], 'rejectBatch');
+                    }
+                });
 
                 pendingList.appendChild(card);
             });
@@ -63,61 +78,62 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function approveNade(nade, approveBtn, rejectBtn) {
-        approveBtn.disabled = true;
-        rejectBtn.disabled = true;
-        approveBtn.textContent = 'Aprovando...';
+    function getSelectedNades() {
+        const checkboxes = document.querySelectorAll('.card-select-checkbox:checked');
+        return Array.from(checkboxes).map(cb => pendingNades[cb.getAttribute('data-index')]);
+    }
 
-        const payload = {
-            action: 'approve',
-            rowIndex: nade.rowIndex,
-            title: nade.title,
-            map: nade.map,
-            side: nade.side,
-            type: nade.type,
-            embedUrl: nade.embedUrl,
-            thumbnailUrl: nade.thumbnailUrl
-        };
+    function updateSelectionUI() {
+        const selectedNades = getSelectedNades();
+        const totalCards = document.querySelectorAll('.card-select-checkbox').length;
+        const selectedCount = selectedNades.length;
 
-        try {
-            await fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+        approveSelectedBtn.disabled = selectedCount === 0;
+        rejectSelectedBtn.disabled = selectedCount === 0;
 
-            setTimeout(() => {
-                loadPendingNades();
-            }, 1500);
+        approveSelectedBtn.textContent = `Aprovar Selecionados (${selectedCount})`;
+        rejectSelectedBtn.textContent = `Recusar Selecionados (${selectedCount})`;
 
-        } catch (error) {
-            console.error('Erro ao aprovar utilitário:', error);
-            alert('Falha ao aprovar o vídeo.');
-            approveBtn.disabled = false;
-            rejectBtn.disabled = false;
-            approveBtn.textContent = 'Aprovar e Publicar';
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = totalCards > 0 && selectedCount === totalCards;
         }
     }
 
-    async function rejectNade(nade, approveBtn, rejectBtn) {
-        if (!confirm(`Deseja realmente recusar e excluir "${nade.title}"?`)) return;
+    function resetSelectionState() {
+        if (selectAllCheckbox) selectAllCheckbox.checked = false;
+        if (approveSelectedBtn) {
+            approveSelectedBtn.disabled = true;
+            approveSelectedBtn.textContent = 'Aprovar Selecionados (0)';
+        }
+        if (rejectSelectedBtn) {
+            rejectSelectedBtn.disabled = true;
+            rejectSelectedBtn.textContent = 'Recusar Selecionados (0)';
+        }
+    }
 
-        approveBtn.disabled = true;
-        rejectBtn.disabled = true;
-        rejectBtn.textContent = 'Excluindo...';
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', (e) => {
+            const checkboxes = document.querySelectorAll('.card-select-checkbox');
+            checkboxes.forEach(cb => cb.checked = e.target.checked);
+            updateSelectionUI();
+        });
+    }
 
-        const payload = {
-            action: 'reject',
-            rowIndex: nade.rowIndex
-        };
+    async function processBatch(items, actionType) {
+        if (!items || items.length === 0) return;
+
+        approveSelectedBtn.disabled = true;
+        rejectSelectedBtn.disabled = true;
 
         try {
             await fetch(API_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    action: actionType,
+                    items: items
+                })
             });
 
             setTimeout(() => {
@@ -125,12 +141,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 1500);
 
         } catch (error) {
-            console.error('Erro ao recusar utilitário:', error);
-            alert('Falha ao excluir o vídeo.');
-            approveBtn.disabled = false;
-            rejectBtn.disabled = false;
-            rejectBtn.textContent = 'Recusar e Excluir';
+            console.error('Erro ao processar lote:', error);
+            alert('Falha ao processar a requisição em lote.');
+            updateSelectionUI();
         }
+    }
+
+    if (approveSelectedBtn) {
+        approveSelectedBtn.addEventListener('click', () => {
+            const selected = getSelectedNades();
+            processBatch(selected, 'approveBatch');
+        });
+    }
+
+    if (rejectSelectedBtn) {
+        rejectSelectedBtn.addEventListener('click', () => {
+            const selected = getSelectedNades();
+            if (confirm(`Deseja realmente recusar e excluir os ${selected.length} vídeos selecionados?`)) {
+                processBatch(selected, 'rejectBatch');
+            }
+        });
     }
 
     loadPendingNades();
