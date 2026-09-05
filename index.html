@@ -13,6 +13,17 @@
     <header class="admin-header">
       <h1>Painel de Moderação</h1>
       <p>Análise os vídeos pendentes antes de liberar para o site principal.</p>
+
+      <!-- Barra de Ações em Lote -->
+      <div id="batchActionsBar" class="batch-actions-bar">
+        <label class="select-all-label">
+          <input type="checkbox" id="selectAllCheckbox"> Selecionar Todos
+        </label>
+        <div class="batch-buttons">
+          <button id="approveSelectedBtn" class="approve-btn" disabled>Aprovar Selecionados (0)</button>
+          <button id="rejectSelectedBtn" class="reject-btn" disabled>Recusar Selecionados (0)</button>
+        </div>
+      </div>
     </header>
 
     <main id="pendingList" class="pending-list">
