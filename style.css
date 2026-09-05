@@ -173,7 +173,52 @@ body {
 .reject-btn:hover {
     background-color: #d64352;
 }
+/* Barra de Ações em Lote */
+.batch-actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1a1a1e;
+    border: 1px solid #29292e;
+    padding: 12px 18px;
+    border-radius: 8px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
 
+.select-all-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+}
+
+.batch-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+/* Checkbox no Card */
+.pending-card {
+    position: relative;
+}
+
+.card-select-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #00b37e;
+}
+
+.card-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 .reject-btn:disabled {
     background-color: #29292e;
     color: #a8a8b3;
